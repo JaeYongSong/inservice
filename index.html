@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인서비스 정리노트</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0e6e8c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="인서비스">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f5f7fa; --ink:#17202e; --ink-soft:#4b5768; --ink-faint:#7d8798;
+  --line:#d9dfe8; --accent:#0e6e8c; --on-accent:#ffffff; --err:#c0392b;
+  --shadow:0 1px 2px rgba(20,30,48,.06),0 6px 20px rgba(20,30,48,.05);
+}
+@media (prefers-color-scheme:dark){:root{
+  color-scheme:dark;
+  --bg:#0d131b; --surface:#141d28; --surface-2:#1a2431; --ink:#e8eef5; --ink-soft:#a2b2c4; --ink-faint:#78899c;
+  --line:#293544; --accent:#49b4d2; --on-accent:#08202a; --err:#f08a7e;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px 16px}
+.card{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:26px 22px 22px}
+.logo{width:52px;height:52px;border-radius:13px;display:block;margin-bottom:14px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{font-size:13px;color:var(--ink-faint);margin:0 0 20px}
+.lbl{display:block;font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+#pw{width:100%;font:inherit;font-size:16px;padding:12px 13px;border-radius:11px;border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink)}
+#pw:focus{outline:2px solid var(--accent);outline-offset:1px}
+.uname{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.row{display:flex;align-items:center;gap:8px;margin:12px 0 16px;font-size:13.5px;color:var(--ink-soft);cursor:pointer}
+.row input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+#go{width:100%;font:inherit;font-size:16px;font-weight:700;padding:12px;border-radius:11px;border:1px solid var(--accent);
+  background:var(--accent);color:var(--on-accent);cursor:pointer}
+#go:disabled{opacity:.6;cursor:default}
+.bar{height:4px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.msg{min-height:20px;margin-top:10px;font-size:13px;line-height:1.5;color:var(--ink-faint)}
+.msg.err{color:var(--err);font-weight:700}
+.note{margin:16px 0 0;font-size:11.5px;line-height:1.6;color:var(--ink-faint);word-break:keep-all}
+.install{margin-top:16px;padding:13px 14px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);
+  font-size:13px;line-height:1.6;color:var(--ink-soft);word-break:keep-all}
+.install h2{font-size:14px;margin:0 0 6px;color:var(--ink)}
+.install ol{margin:0;padding-left:20px}
+.install li{margin:2px 0}
+.install b{color:var(--ink)}
+.install .share{display:inline-block;width:15px;height:15px;vertical-align:-2px;color:var(--accent)}
+.install p{margin:8px 0 0;font-size:12px;color:var(--ink-faint)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<main class="card">
+  <img class="logo" src="icon-180.png" alt="">
+  <h1>인서비스 정리노트</h1>
+  <p class="sub">신경과 족보 2002–2026 · 주제별 통합</p>
+  <form id="f" class="hide" autocomplete="on">
+    <input class="uname" type="text" name="username" autocomplete="username" value="인서비스 정리노트" tabindex="-1" aria-hidden="true">
+    <label class="lbl" for="pw">비밀번호</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="none"
+      autocorrect="off" spellcheck="false" enterkeyhint="go" required>
+    <label class="row"><input type="checkbox" id="remember" checked> 이 기기에서 기억하기</label>
+    <button id="go" type="submit">열기</button>
+  </form>
+  <div class="bar hide" id="bar"><i></i></div>
+  <div class="msg" id="msg" role="status" aria-live="polite">여는 중…</div>
+  <p class="note hide" id="note">처음 한 번만 입력하면 이 기기에서는 바로 열려요. 공부 기록은 이 브라우저에 저장됩니다.</p>
+  <section class="install hide" id="install" aria-label="홈 화면에 추가하는 방법">
+    <h2>📲 아이폰에서 앱처럼 쓰기</h2>
+    <ol>
+      <li><b>Safari 앱</b>에서 이 주소를 열고</li>
+      <li>공유 버튼 <svg class="share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>(또는 ··· → 공유) → <b>홈 화면에 추가</b></li>
+      <li>홈 화면의 <b>인서비스</b> 아이콘으로 열어 비밀번호 입력</li>
+    </ol>
+    <p>아이콘으로 열면 전체 화면으로 열리고, 한 번 연 뒤에는 인터넷이 없어도 열려요. 홈 화면 앱의 공부 기록은 Safari와 따로 저장되니 아이콘으로 열어서 공부하세요.</p>
+  </section>
+</main>
+<noscript><p style="text-align:center">자바스크립트를 켜야 열 수 있어요.</p></noscript>
+<script>
+/* Password gate: app.bin = "ISN1" | salt(16) | iterations(u32 BE) | iv(12) | AES-256-GCM( gzip(app html) ).
+   Key = PBKDF2-SHA256(normalized password, salt, iterations). The decrypted page replaces this one via document.write.
+   Everything lives inside this function so the app page written over it can declare its own globals. */
+(function(){
+  "use strict";
+  var VER="3eafd7cdff2c", SIZE=7068252, SALT="Wc/QQGHUHzykoUcOk+ydDg==", ITER=600000, KEY="isn:unlock", CACHE="isn-v1";
+  var $=function(id){return document.getElementById(id);};
+  var bar=$("bar"), fill=bar.firstElementChild, form=$("f"), pw=$("pw"), go=$("go");
+  function say(t,err){ var m=$("msg"); m.textContent=t; m.className="msg"+(err?" err":""); }
+  function store(s){ return {
+    get:function(k){try{return s().getItem(k);}catch(e){return null;}},
+    set:function(k,v){try{s().setItem(k,v);}catch(e){}},
+    del:function(k){try{s().removeItem(k);}catch(e){}} }; }
+  var ls=store(function(){return localStorage;}), ss=store(function(){return sessionStorage;});
+  function b64(u){ var s=""; for(var i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+  function unb64(s){ var b=atob(s), u=new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+  function norm(p){ return p.normalize("NFC").toLowerCase().replace(/[\s-]/g,""); }
+
+  /* opened from the home-screen icon? (iOS: navigator.standalone; others: display-mode) */
+  var STANDALONE = navigator.standalone===true ||
+    (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+  var IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  if(STANDALONE) $("note").textContent="처음 한 번만 입력하면 다음부터는 바로 열려요. 공부 기록은 이 폰의 앱 안에 저장됩니다.";
+
+  if(!window.crypto||!crypto.subtle){ say("이 브라우저에서는 열 수 없어요. 최신 Safari·Chrome으로 열어 주세요.",true); return; }
+  if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
+
+  /* start downloading at once, while the password is being typed */
+  var url="app.bin?v="+VER, got=0, total=SIZE, watching=false, dl=null;
+  function progress(){ if(!watching) return; var p=Math.min(100,Math.round(got/total*100));
+    fill.style.width=p+"%"; if(p<100) say("자료 받는 중… "+p+"%"); }
+  function fetchData(){
+    got=0;
+    return fetch(url).then(function(r){
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      total=+r.headers.get("content-length")||SIZE;
+      if(!r.body||!r.body.getReader) return r.arrayBuffer().then(function(b){ got=total; progress(); return new Uint8Array(b); });
+      var rd=r.body.getReader(), parts=[];
+      function pump(){ return rd.read().then(function(x){
+        if(x.done){ var out=new Uint8Array(got), o=0; parts.forEach(function(p){out.set(p,o);o+=p.length;}); return out; }
+        parts.push(x.value); got+=x.value.length; progress(); return pump(); }); }
+      return pump();
+    });
+  }
+  function data(){ if(!dl){ dl=fetchData(); dl.catch(function(){ dl=null; }); } return dl; }
+  data();
+
+  function derive(p,salt,iter){
+    return crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"]).then(function(k){
+      return crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:salt,iterations:iter},k,256); })
+      .then(function(b){ return new Uint8Array(b); });
+  }
+  function inflate(u8){
+    if(typeof DecompressionStream==="function")
+      return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+    return new Promise(function(res,rej){ var s=document.createElement("script"); s.src="inflate.js?v="+VER;
+      s.onload=res; s.onerror=function(){rej(new Error("inflate.js"));}; document.head.appendChild(s); })
+      .then(function(){ return window.pako.inflate(u8,{to:"string"}); });
+  }
+  function keepOffline(buf){  /* first visit is not yet controlled by the service worker: cache what we already downloaded */
+    if(!("caches" in window)) return;
+    caches.open(CACHE).then(function(c){
+      return c.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return /\/app\.bin(\?|$)/.test(k.url) && k.url.indexOf("v="+VER)<0; })
+        .map(function(k){ return c.delete(k); })); })
+      .then(function(){ return c.match(url); })
+      .then(function(hit){ if(!hit) return c.put(url,new Response(buf,{headers:{"Content-Type":"application/octet-stream"}})); })
+      .then(function(){ return c.addAll(["./","manifest.json","icon-180.png","icon-192.png"]); });
+    }).catch(function(){});
+  }
+  /* raw: 32-byte key, or null + password to derive with the file's own salt */
+  function unlock(raw,pass,remember){
+    watching=true; bar.classList.remove("hide"); progress();
+    var keyP = raw ? Promise.resolve(raw) : derive(pass,unb64(SALT),ITER);
+    return Promise.all([keyP,data()]).then(function(r){
+      var key=r[0], buf=r[1];
+      if(String.fromCharCode(buf[0],buf[1],buf[2],buf[3])!=="ISN1") throw new Error("format");
+      var salt=buf.subarray(4,20), iter=new DataView(buf.buffer,buf.byteOffset+20,4).getUint32(0), iv=buf.subarray(24,36);
+      var fileKey = (pass!=null && (b64(salt)!==SALT || iter!==ITER)) ? derive(pass,salt,iter) : Promise.resolve(key);
+      say("여는 중…"); fill.style.width="100%";
+      return fileKey.then(function(k){
+        key=k;
+        return crypto.subtle.importKey("raw",k,"AES-GCM",false,["decrypt"]).then(function(ck){
+          return crypto.subtle.decrypt({name:"AES-GCM",iv:iv},ck,buf.subarray(36)); })
+          .catch(function(){ var e=new Error("badkey"); e.badkey=true; throw e; });
+      }).then(function(plain){ return inflate(new Uint8Array(plain)); }).then(function(html){
+        if(remember==="local") ls.set(KEY,b64(key)); else if(remember==="session") ss.set(KEY,b64(key));
+        keepOffline(buf);
+        /* installed app: ask the browser not to evict the study records (no prompt in home-screen apps) */
+        if(STANDALONE && navigator.storage && navigator.storage.persist){ try{ navigator.storage.persist().catch(function(){}); }catch(e){} }
+        document.open(); document.write(html); document.close();
+      });
+    });
+  }
+  function fail(e){
+    go.disabled=false;
+    say(navigator.onLine===false ? "인터넷에 연결되어 있지 않아요. 연결한 뒤 다시 열어 주세요."
+      : "자료를 불러오지 못했어요. 잠시 후 새로고침해 주세요. ("+((e&&e.message)||e)+")", true);
+  }
+  function showForm(note,err){
+    form.classList.remove("hide"); $("note").classList.remove("hide"); bar.classList.add("hide"); watching=false;
+    if(IOS && !STANDALONE) $("install").classList.remove("hide");
+    say(note||"",err); setTimeout(function(){ try{pw.focus();}catch(e){} },50);
+  }
+  form.addEventListener("submit",function(e){
+    e.preventDefault();
+    var p=norm(pw.value||""); if(!p) return;
+    go.disabled=true;
+    unlock(null,p,$("remember").checked?"local":"session").catch(function(err){
+      if(err&&err.badkey){ go.disabled=false; bar.classList.add("hide"); watching=false;
+        say("비밀번호가 맞지 않아요.",true); try{pw.select();}catch(_){} }
+      else fail(err);
+    });
+  });
+
+  var saved=ls.get(KEY)||ss.get(KEY);
+  if(saved){
+    unlock(unb64(saved),null,null).catch(function(err){
+      if(err&&err.badkey){ ls.del(KEY); ss.del(KEY); showForm("내용이 바뀌어 비밀번호를 다시 확인해야 해요."); }
+      else { showForm(); fail(err); }
+    });
+  } else showForm();
+})();
+</script>
+</body>
+</html>
