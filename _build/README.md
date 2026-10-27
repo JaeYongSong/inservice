@@ -16,7 +16,18 @@
 - `ISN_PASSWORD='…' python3 _build/make_site.py --check` — app.bin을 풀어 보고 VER가 맞는지 확인
 - `ISN_PASSWORD='…' python3 _build/test_site.py` — 브라우저 시험(새 기기, 옛 열쇠를 기억한 기기, 기록 동기화 열쇠 교체, 다른 기기)
 
+## 오류 신고 처리 (매일 자동 작업이 쓰는 순서)
+1. 최신 게시본을 Artifact read → `python3 _build/page.py extract 받은파일 PAGE.html` → `python3 _build/page.py check PAGE.html`
+2. `ISN_KEY='…' python3 _build/read_records.py --page PAGE.html` — 아직 안 고친 신고, 문항 위치, 그 문항의 형광펜 구역
+   (종료 코드 3 = 동기화 파일이 다른 열쇠로 잠겨 있음: 비밀번호를 바꾼 뒤 아직 어느 기기도 새 비밀번호로 열지 않음)
+3. 고치기: `page.py`의 `Page`로 문항(dict)을 고치고 `resolve({qid: 지금 ms})`, `set_appver(…)`, `save()`.
+   문제 문장(stem)은 절대 바꾸지 않는다(문항 ID). `<en>`은 지우지 않는다. 형광펜 구역은 칠한 부분 뒤에만 덧붙인다.
+4. 클로드 버전 게시(같은 URL) → `python3 _build/make_site.py PAGE.html` → `ISN_KEY='…' python3 _build/make_site.py --check` → push.
+   공개 저장소라 커밋 메시지·파일에 문제 내용을 쓰지 않는다. 사이트 열쇠(ISN_KEY)는 어디에도 적지 않는다.
+
 ## 파일
+- `page.py` — 앱 페이지 다루기(호스트 껍데기 떼기, 문항 찾기 = hsh(stem), DATA 고쳐 쓰기, RESOLVED·APPVER).
+- `read_records.py` — 동기화 기록(records.enc)을 사이트 열쇠로 열어 오류 신고 목록을 보여 줌.
 - `make_site.py` — 앱 페이지 → app.bin(ISN2)·index.html 상수. 형식 설명은 파일 맨 위.
 - `site_key.json` — 사이트 공개키, 비밀번호 열쇠로 잠근 개인키, salt, 반복 횟수(전부 공개해도 됨).
 - `set_password.py` — 비밀번호를 바꿀 때만: `ISN_NEW_PASSWORD='…' python3 _build/set_password.py` → make_site → push.

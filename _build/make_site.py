@@ -2,7 +2,7 @@
 """Build the phone site (app.bin + index.html) from the app page — no password needed.
 
   python3 _build/make_site.py PAGE.html [SITE_DIR]          # SITE_DIR = the repo root (default: the folder above _build)
-  ISN_PASSWORD='…' python3 _build/make_site.py --check [SITE_DIR]   # optional: decrypt app.bin with the password and report
+  ISN_PASSWORD='…' (or ISN_KEY='<base64 site key>') python3 _build/make_site.py --check [SITE_DIR]   # decrypt app.bin and report
 
 PAGE.html is the app page as published in the Claude version (the artifact's own page: it starts with <title> and has no
 <html>/<head>/<body> of its own; the claude.ai host adds those). In a Claude session: Artifact read → strip the host's
@@ -72,10 +72,10 @@ def seal(html_bytes, key):
             + epub + iv + body)
 
 
-def open_bin(blob, password):
-    """decrypt app.bin with the password (for --check and tests)"""
+def open_bin(blob, password=None, key=None):
+    """decrypt app.bin with the password or the site key K itself (for --check and tests)"""
     salt, it = blob[4:20], struct.unpack(">I", blob[20:24])[0]
-    K = hashlib.pbkdf2_hmac("sha256", norm(password).encode("utf-8"), salt, it, 32)
+    K = key or hashlib.pbkdf2_hmac("sha256", norm(password).encode("utf-8"), salt, it, 32)
     if blob[:4] == b"ISN1":
         return gzip.decompress(AESGCM(K).decrypt(blob[24:36], blob[36:], None)).decode("utf-8")
     assert blob[:4] == b"ISN2", blob[:4]
@@ -105,9 +105,11 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if "--check" in sys.argv:
         site = args[0] if args else os.path.dirname(HERE)
-        pw = os.environ.get("ISN_PASSWORD") or sys.exit("ISN_PASSWORD 환경 변수에 사이트 비밀번호를 넣어 주세요")
+        pw, kb = os.environ.get("ISN_PASSWORD"), os.environ.get("ISN_KEY")
+        if not (pw or kb):
+            sys.exit("ISN_PASSWORD(사이트 비밀번호) 또는 ISN_KEY(사이트 열쇠, base64) 환경 변수가 필요해요")
         blob = open(os.path.join(site, "app.bin"), "rb").read()
-        html = open_bin(blob, pw)
+        html = open_bin(blob, pw, base64.b64decode(kb) if kb else None)
         ver = hashlib.sha256(blob).hexdigest()[:12]
         idx = open(os.path.join(site, "index.html"), encoding="utf-8").read()
         appver = re.findall(r'const APPVER="([^"]+)"', html)
