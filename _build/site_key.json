@@ -1,0 +1,9 @@
+{
+ "v": 2,
+ "note": "phone-site key: the public key seals each build; the private key is stored only encrypted with the password key (PBKDF2-SHA256). Nothing here reveals the password.",
+ "salt": "p9zbySPyM9PVk1bOG3mhuQ==",
+ "iter": 600000,
+ "wiv": "DF4okosNRDMMxDDv",
+ "wrapped": "WsLLfGF6qPfu2N5+ne4InDA9hFdc2Tpp/NTY9neQeCFYgdg4xYqL4DmX84rEVnQcuslqhJv7sr64XjBiHVUdBGgSDJuEWYTgo5nlQQSTGJzO8OMp3iRgnc+GETM56+2ncEtQ9TzYDbp06aWLBR7+2thccplrJ8nCzH5ZjCd3BmZvzbyCSeoDKlDjbJxud5CLj2sywShsI3NUw3yCLqWyxcd8U0Z0YFlmIxfQvEp+pLdaZziJOhktMzuZh7sVtqTR",
+ "pub": "BNVHJU0jrkhMUC0dQqqLfqMPUrld7NXJTun0vEjwVQ+joZ7caBNCNhH+6tdAloIhXaec6YT6cjodTg0wx+uEP/4="
+}

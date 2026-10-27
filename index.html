@@ -87,12 +87,19 @@ h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
 </main>
 <noscript><p style="text-align:center">자바스크립트를 켜야 열 수 있어요.</p></noscript>
 <script>
-/* Password gate: app.bin = "ISN1" | salt(16) | iterations(u32 BE) | iv(12) | AES-256-GCM( gzip(app html) ).
-   Key = PBKDF2-SHA256(normalized password, salt, iterations). The decrypted page replaces this one via document.write.
-   Everything lives inside this function so the app page written over it can declare its own globals. */
+/* Lock screen. app.bin (since 2026-10-27) =
+     "ISN2" | salt(16) | iterations(u32 BE) | wiv(12) | wlen(u16 BE) | wrapped(wlen) | epub(65) | iv(12) | AES-256-GCM(ck, gzip(app html))
+   K = PBKDF2-SHA256(normalized password, salt, iterations) unwraps the site's private key (JWK) from 'wrapped';
+   ck = SHA-256("ISN2" ‖ ECDH(site private key, epub).x ‖ epub). Each update is sealed with the site's public key
+   (_build/make_site.py), so building needs no password and K stays the same across updates: a device that remembers K
+   opens new versions without asking. Old "ISN1" files (AES-256-GCM with K itself after the 36-byte header) still open.
+   If the remembered K no longer opens the file, the password was changed: K is kept as "isn:unlock_prev" so the app can
+   read study records saved under the old password once and reseal them (runSync), and the new password is asked.
+   The decrypted page replaces this one via document.write. Everything lives inside this function so the app page written
+   over it can declare its own globals. */
 (function(){
   "use strict";
-  var VER="2a71059868c6", SIZE=8749665, SALT="Wc/QQGHUHzykoUcOk+ydDg==", ITER=600000, KEY="isn:unlock", CACHE="isn-v1";
+  var VER="f9192241ff11", SIZE=9131463, SALT="p9zbySPyM9PVk1bOG3mhuQ==", ITER=600000, KEY="isn:unlock", PREV="isn:unlock_prev", CACHE="isn-v1";
   var $=function(id){return document.getElementById(id);};
   var bar=$("bar"), fill=bar.firstElementChild, form=$("f"), pw=$("pw"), go=$("go");
   function say(t,err){ var m=$("msg"); m.textContent=t; m.className="msg"+(err?" err":""); }
@@ -146,6 +153,28 @@ h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
       s.onload=res; s.onerror=function(){rej(new Error("inflate.js"));}; document.head.appendChild(s); })
       .then(function(){ return window.pako.inflate(u8,{to:"string"}); });
   }
+  function badkey(){ var e=new Error("badkey"); e.badkey=true; return e; }
+  function aesOpen(raw,iv,data){
+    return crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]).then(function(k){
+      return crypto.subtle.decrypt({name:"AES-GCM",iv:iv},k,data); }).then(function(b){ return new Uint8Array(b); });
+  }
+  function cat(a,b,c){ var o=new Uint8Array(a.length+b.length+c.length); o.set(a,0); o.set(b,a.length); o.set(c,a.length+b.length); return o; }
+  function openV1(buf,K){ return aesOpen(K,buf.subarray(24,36),buf.subarray(36)).catch(function(){ throw badkey(); }); }
+  function openV2(buf,K){
+    var p=24, wiv=buf.subarray(p,p+12); p+=12;
+    var wl=(buf[p]<<8)|buf[p+1]; p+=2;
+    var wrapped=buf.subarray(p,p+wl); p+=wl;
+    var epub=buf.slice(p,p+65); p+=65;
+    var iv=buf.subarray(p,p+12), body=buf.subarray(p+12);
+    return aesOpen(K,wiv,wrapped).catch(function(){ throw badkey(); }).then(function(j){
+      var jwk=JSON.parse(new TextDecoder().decode(j));
+      return Promise.all([
+        crypto.subtle.importKey("jwk",jwk,{name:"ECDH",namedCurve:"P-256"},false,["deriveBits"]),
+        crypto.subtle.importKey("raw",epub,{name:"ECDH",namedCurve:"P-256"},false,[])]);
+    }).then(function(ks){ return crypto.subtle.deriveBits({name:"ECDH",public:ks[1]},ks[0],256); })
+      .then(function(bits){ return crypto.subtle.digest("SHA-256",cat(new TextEncoder().encode("ISN2"),new Uint8Array(bits),epub)); })
+      .then(function(ck){ return aesOpen(new Uint8Array(ck),iv,body); });
+  }
   function keepOffline(buf){  /* first visit is not yet controlled by the service worker: cache what we already downloaded */
     if(!("caches" in window)) return;
     caches.open(CACHE).then(function(c){
@@ -161,17 +190,15 @@ h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
     watching=true; bar.classList.remove("hide"); progress();
     var keyP = raw ? Promise.resolve(raw) : derive(pass,unb64(SALT),ITER);
     return Promise.all([keyP,data()]).then(function(r){
-      var key=r[0], buf=r[1];
-      if(String.fromCharCode(buf[0],buf[1],buf[2],buf[3])!=="ISN1") throw new Error("format");
-      var salt=buf.subarray(4,20), iter=new DataView(buf.buffer,buf.byteOffset+20,4).getUint32(0), iv=buf.subarray(24,36);
+      var key=r[0], buf=r[1], magic=String.fromCharCode(buf[0],buf[1],buf[2],buf[3]);
+      if(magic!=="ISN1"&&magic!=="ISN2") throw new Error("format");
+      var salt=buf.subarray(4,20), iter=new DataView(buf.buffer,buf.byteOffset+20,4).getUint32(0);
       var fileKey = (pass!=null && (b64(salt)!==SALT || iter!==ITER)) ? derive(pass,salt,iter) : Promise.resolve(key);
       say("여는 중…"); fill.style.width="100%";
       return fileKey.then(function(k){
         key=k;
-        return crypto.subtle.importKey("raw",k,"AES-GCM",false,["decrypt"]).then(function(ck){
-          return crypto.subtle.decrypt({name:"AES-GCM",iv:iv},ck,buf.subarray(36)); })
-          .catch(function(){ var e=new Error("badkey"); e.badkey=true; throw e; });
-      }).then(function(plain){ return inflate(new Uint8Array(plain)); }).then(function(html){
+        return magic==="ISN1" ? openV1(buf,k) : openV2(buf,k);
+      }).then(function(plain){ return inflate(plain); }).then(function(html){
         if(remember==="local") ls.set(KEY,b64(key)); else if(remember==="session") ss.set(KEY,b64(key));
         keepOffline(buf);
         /* installed app: ask the browser not to evict the study records (no prompt in home-screen apps) */
@@ -204,7 +231,8 @@ h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
   var saved=ls.get(KEY)||ss.get(KEY);
   if(saved){
     unlock(unb64(saved),null,null).catch(function(err){
-      if(err&&err.badkey){ ls.del(KEY); ss.del(KEY); showForm("내용이 바뀌어 비밀번호를 다시 확인해야 해요."); }
+      if(err&&err.badkey){ ls.set(PREV,saved); ls.del(KEY); ss.del(KEY);
+        showForm("비밀번호가 바뀌었어요. 새 비밀번호를 한 번만 입력해 주세요. 공부 기록은 그대로 있어요."); }
       else { showForm(); fail(err); }
     });
   } else showForm();
