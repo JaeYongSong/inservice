@@ -40,7 +40,16 @@
 5. 클로드 버전 게시(같은 URL) → `python3 _build/make_site.py PAGE.html` → `ISN_KEY='…' python3 _build/make_site.py --check` → push.
    공개 저장소라 커밋 메시지·파일에 문제 내용을 쓰지 않는다. 사이트 열쇠(ISN_KEY)는 어디에도 적지 않는다.
 
+## 공유용 사이트 (share/, 비밀번호 없음)
+다른 사람에게 주소만 보내면 쓸 수 있는 공개판: https://jaeyongsong.github.io/inservice/share/
+- `python3 _build/make_share.py PAGE.html` → `share/index.html`(암호화 없는 앱 페이지 그대로)·아이콘·manifest. `git add share && commit && push`.
+- 만든 시점의 문제·해설만 들어 있고 **공부 기록은 전혀 들어 있지 않다**. 각 방문자의 풀이·오답·중요 표시·형광펜·메모는
+  그 사람 브라우저에만 저장된다(localStorage 접두사 `isnshare:` — 주인용 폰 사이트의 `isn:`과 분리). 동기화·클로드로 보내기·
+  오류 신고 전달·잠금 메뉴는 없다(오류 신고 버튼은 그 기기에만 남는 메모가 됨).
+- 주인용 폰 사이트와 따로 간다: 문제를 고친 뒤 공유판도 새로 하려면 위 명령을 한 번 더 돌린다(매일 자동 작업은 안 건드림).
+
 ## 파일
+- `make_share.py` — 공유용 사이트(share/) 만들기. 위 설명 참고.
 - `page.py` — 앱 페이지 다루기(호스트 껍데기 떼기, 문항 찾기 = hsh(stem), DATA 고쳐 쓰기, RESOLVED·APPVER).
 - `read_records.py` — 동기화 기록(records.enc)을 사이트 열쇠로 열어 오류 신고 목록을 보여 줌.
 - `check_edit.py` — 고친 페이지 검사(스크립트 오류, 전체 문항 그리기, 형광펜 글자 보존). Chromium(Playwright) 사용.
